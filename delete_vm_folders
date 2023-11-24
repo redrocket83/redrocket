@@ -1,0 +1,34 @@
+# Connect to the vCenter server
+Connect-VIServer -Server Your-vCenter-Server -User Your-Username -Password Your-Password
+
+# Specify the parent datacenter path
+$parentFolderPath = "Your-Datacenter"
+
+# Get all folders under the specified parent folder
+$allFolders = Get-Datacenter $parentFolderPath | Get-Folder -Type VM
+
+# Display the list of folders
+Write-Host "List of folders under $parentFolderPath"
+$allFolders | ForEach-Object {
+    Write-Host $_.Name
+}
+
+# Specify the prefix for folders to delete
+$folderPrefixToDelete = "Your-foldername-Prefix"
+
+# Get the folders to delete
+$foldersToDelete = $allFolders | Where-Object { $_.Name -like "$folderPrefixToDelete*" }
+
+# Check if any matching folders exist before attempting to remove
+if ($foldersToDelete.Count -gt 0) {
+    # Remove each matching folder
+    $foldersToDelete | ForEach-Object {
+        Remove-Folder -Folder $_ -Confirm:$false
+        Write-Host "Folder $($_.Name) removed successfully."
+    }
+} else {
+    Write-Host "No folders starting with '$folderPrefixToDelete' found."
+}
+
+# Disconnect from the vCenter server
+Disconnect-VIServer -Server * -Confirm:$false
